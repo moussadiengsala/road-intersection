@@ -6,8 +6,8 @@ pub struct Path {
 }
 
 impl Path {
-    pub fn new(start: Point, end: Point) -> Path {
-        Path { start, end }
+    pub fn new(start: (i32, i32), end: (i32, i32)) -> Path {
+        Path { start: Point::new(start.0, start.1), end: Point::new(end.0, end.1) }
     }
 }
 
@@ -17,23 +17,28 @@ pub fn draw_map(canvas: &mut Canvas<Window>, width: i32, height: i32, vehicle: i
     let vehicle_width = 2*vehicle;
     let gap = 1;
 
+    let a = half_height - gap - vehicle_width;
+    let b = half_width - gap - vehicle_width;
+    let c = half_height + gap + vehicle_width;
+    let d = half_width + gap + vehicle_width;
+
     let roads = [
-        Path::new(Point::new(0, half_height - gap - vehicle_width), Point::new(half_width - gap - vehicle_width, half_height - gap - vehicle_width)),
-        Path::new(Point::new(half_width - gap - vehicle_width, 0), Point::new(half_width - gap - vehicle_width, half_height - gap - vehicle_width)),
+        Path::new((0, a), (b, a)),
+        Path::new((b, 0), (b, a)),
 
-        Path::new(Point::new(0, half_height + gap + vehicle_width), Point::new(half_width - gap - vehicle_width, half_height + gap + vehicle_width)),
-        Path::new(Point::new(half_width - gap - vehicle_width, height), Point::new(half_width - gap - vehicle_width, half_height + gap + vehicle_width)),
+        Path::new((0, c), (b, c)),
+        Path::new((b, height), (b, c)),
 
-        Path::new(Point::new(width, half_height - gap - vehicle_width), Point::new(half_width + gap + vehicle_width, half_height - gap - vehicle_width)),
-        Path::new(Point::new(half_width + gap + vehicle_width, 0), Point::new(half_width + gap + vehicle_width, half_height - gap - vehicle_width)),
+        Path::new((width, a), (d, a)),
+        Path::new((d, 0), (d, a)),
         
-        Path::new(Point::new(width, half_height + gap + vehicle_width), Point::new(half_width + gap + vehicle_width, half_height + gap + vehicle_width)),
-        Path::new(Point::new(half_width + gap + vehicle_width, height), Point::new(half_width + gap + vehicle_width, half_height + gap + vehicle_width)),
+        Path::new((width, c), (d, c)),
+        Path::new((d, height), (d, c)),
 
-        Path::new(Point::new(0, half_height), Point::new(half_width - gap - vehicle_width, half_height)),
-        Path::new(Point::new(half_width, height), Point::new(half_width, half_height + gap + vehicle_width)),
-        Path::new(Point::new(width, half_height), Point::new(half_width + gap + vehicle_width, half_height)),
-        Path::new(Point::new(half_width, 0), Point::new(half_width, half_height - vehicle_width)),
+        Path::new((0, half_height), (b, half_height)),
+        Path::new((half_width, height), (half_width, c)),
+        Path::new((width, half_height), (d, half_height)),
+        Path::new((half_width, 0), (half_width, half_height - vehicle_width)),
     ];
 
     canvas.set_draw_color(Color::RGB(255, 255, 255)); // Set line color

@@ -27,20 +27,20 @@ impl TrafficLight {
         canvas.set_draw_color(self.color);
         let points = match self.light {
             Cross::First => [
-                Path::new(Point::new(x1, y2), Point::new(x1, y1)),
-                Path::new(Point::new(x2, y1), Point::new(x1, y1)),
+                Path::new((x1, y2), (x1, y1)),
+                Path::new((x2, y1), (x1, y1)),
             ],
             Cross::Second => [
-                Path::new(Point::new(x4, y2), Point::new(x4, y1)),
-                Path::new(Point::new(x3, y1), Point::new(x4, y1)),
+                Path::new((x4, y2), (x4, y1)),
+                Path::new((x3, y1), (x4, y1)),
             ],
             Cross::Third => [
-                Path::new(Point::new(x1, y3), Point::new(x1, y4)),
-                Path::new(Point::new(x1, y4), Point::new(x2, y4)),
+                Path::new((x1, y3), (x1, y4)),
+                Path::new((x1, y4), (x2, y4)),
             ],
             Cross::Fourth => [
-                Path::new(Point::new(x4, y3), Point::new(x4, y4)),
-                Path::new(Point::new(x4, y4), Point::new(x3, y4)),
+                Path::new((x4, y3), (x4, y4)),
+                Path::new((x4, y4), (x3, y4)),
             ],
         };
 
