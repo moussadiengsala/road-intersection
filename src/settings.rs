@@ -1,6 +1,6 @@
 
 
-pub struct Demensions {
+pub struct Settings {
     pub width: u32,
     pub height: u32,
     pub vehicle_width: u32,
@@ -12,8 +12,8 @@ pub struct Demensions {
     d: u32,
 }
 
-impl Demensions {
-    pub fn new(width: u32, height: u32, vehicle_width: u32, gap: u32) -> Demensions {
+impl Settings {
+    pub fn new(width: u32, height: u32, vehicle_width: u32, gap: u32) -> Settings {
         let half_width = width / 2;
         let half_height = height / 2;
         let vehicle_width = 2*vehicle;
