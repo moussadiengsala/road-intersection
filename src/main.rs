@@ -3,14 +3,15 @@ use sdl2;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
-use sdl2::rect::Rect;
-use std::time::Duration;
+use std::{rc::Rc, time::Duration};
+
+mod settings;
+use settings::Settings;
 
 mod map;
 use map::draw_map;
 
 mod traffic;
-
 
 mod cars;
 use cars::handle_keyboard_event;
@@ -19,16 +20,13 @@ mod lane;
 use lane::{Lane, Cross};
 
 pub fn main() {
-    const WIDTH: u32 = 800;
-    const HEIGHT: u32 = 800;
-    const VEHICULE_WIDTH: u32 = 30;
-    const SAFETY_DISTANCE: i32 = 50;
+    let settings = Rc::new(Settings::new(800, 800, 30, 1, 50));
 
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
 
     let window = video_subsystem
-        .window("rust-sdl2 demo", WIDTH, HEIGHT)
+        .window("rust-sdl2 demo", settings.width as u32, settings.height as u32)
         .position_centered()
         .build()
         .unwrap();
@@ -39,10 +37,10 @@ pub fn main() {
     canvas.clear();
 
     let mut lanes = vec![
-        Lane::new(SAFETY_DISTANCE, Cross::First),
-        Lane::new(SAFETY_DISTANCE, Cross::Second),
-        Lane::new(SAFETY_DISTANCE, Cross::Third),
-        Lane::new(SAFETY_DISTANCE, Cross::Fourth),
+        Lane::new(Cross::First, settings.clone()),
+        Lane::new(Cross::Second, settings.clone()),
+        Lane::new(Cross::Third, settings.clone()),
+        Lane::new(Cross::Fourth, settings.clone()),
     ];
     
     canvas.present();
@@ -60,7 +58,7 @@ pub fn main() {
                     ..
                 } => break 'running,
                 _ => {
-                    handle_keyboard_event(&event, &mut lanes, WIDTH as i32, HEIGHT as i32, VEHICULE_WIDTH as i32);
+                    handle_keyboard_event(&event, &mut lanes, settings.clone());
                 }
             }
         }
@@ -69,11 +67,14 @@ pub fn main() {
         // The rest of the game loop goes here...
         
         // map
-        draw_map(&mut canvas, WIDTH as i32, HEIGHT as i32, VEHICULE_WIDTH as i32);
+        draw_map(&mut canvas, settings.clone());
 
         for lane in &mut lanes {
-            lane.traffic_light.draw(&mut canvas, WIDTH as i32, HEIGHT as i32, VEHICULE_WIDTH as i32);
-            lane.update(&mut canvas, WIDTH as i32, HEIGHT as i32, VEHICULE_WIDTH as i32);
+            // lane.traffic_light.draw(&mut canvas, WIDTH as i32, HEIGHT as i32, VEHICULE_WIDTH as i32);
+            // lane.update(&mut canvas, WIDTH as i32, HEIGHT as i32, VEHICULE_WIDTH as i32);
+
+
+
             // for vehicle in &mut lane.vehicles {
             //     vehicle.move_forward(WIDTH as i32, HEIGHT as i32, VEHICULE_WIDTH as i32);
             //     canvas.set_draw_color(vehicle.color);

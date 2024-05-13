@@ -1,4 +1,8 @@
+use std::rc::Rc;
+
 use sdl2::{pixels::Color, rect::Point, render::Canvas, video::Window};
+
+use crate::settings::Settings;
 
 pub struct Path {
     pub start: Point,
@@ -11,34 +15,25 @@ impl Path {
     }
 }
 
-pub fn draw_map(canvas: &mut Canvas<Window>, width: i32, height: i32, vehicle: i32) {
-    let half_width = width / 2;
-    let half_height = height / 2;
-    let vehicle_width = 2*vehicle;
-    let gap = 1;
-
-    let a = half_height - gap - vehicle_width;
-    let b = half_width - gap - vehicle_width;
-    let c = half_height + gap + vehicle_width;
-    let d = half_width + gap + vehicle_width;
+pub fn draw_map(canvas: &mut Canvas<Window>, settings: Rc<Settings>) {
 
     let roads = [
-        Path::new((0, a), (b, a)),
-        Path::new((b, 0), (b, a)),
+        Path::new((0, settings.horizontal_road_1), (settings.vertical_road_1, settings.horizontal_road_1)),
+        Path::new((settings.vertical_road_1, 0), (settings.vertical_road_1, settings.horizontal_road_1)),
 
-        Path::new((0, c), (b, c)),
-        Path::new((b, height), (b, c)),
+        Path::new((0, settings.horizontal_road_2), (settings.vertical_road_1, settings.horizontal_road_2)),
+        Path::new((settings.vertical_road_1, settings.height), (settings.vertical_road_1, settings.horizontal_road_2)),
 
-        Path::new((width, a), (d, a)),
-        Path::new((d, 0), (d, a)),
+        Path::new((settings.width, settings.horizontal_road_1), (settings.vertical_road_2, settings.horizontal_road_1)),
+        Path::new((settings.vertical_road_2, 0), (settings.vertical_road_2, settings.horizontal_road_1)),
         
-        Path::new((width, c), (d, c)),
-        Path::new((d, height), (d, c)),
+        Path::new((settings.width, settings.horizontal_road_2), (settings.vertical_road_2, settings.horizontal_road_2)),
+        Path::new((settings.vertical_road_2, settings.height), (settings.vertical_road_2, settings.horizontal_road_2)),
 
-        Path::new((0, half_height), (b, half_height)),
-        Path::new((half_width, height), (half_width, c)),
-        Path::new((width, half_height), (d, half_height)),
-        Path::new((half_width, 0), (half_width, half_height - vehicle_width)),
+        Path::new((0, settings.height / 2), (settings.vertical_road_1, settings.height / 2)),
+        Path::new((settings.width / 2, settings.height), (settings.width / 2, settings.horizontal_road_2)),
+        Path::new((settings.width, settings.height / 2), (settings.vertical_road_2, settings.height / 2)),
+        Path::new((settings.width / 2, 0), (settings.width / 2, settings.height / 2 - settings.vehicle_width)),
     ];
 
     canvas.set_draw_color(Color::RGB(255, 255, 255)); // Set line color

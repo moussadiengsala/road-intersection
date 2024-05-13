@@ -1,33 +1,35 @@
-
-
+#[derive(Debug, Clone, Copy)]
 pub struct Settings {
-    pub width: u32,
-    pub height: u32,
-    pub vehicle_width: u32,
-    gap: u32,
-    
-    a: u32,
-    b: u32,
-    c: u32,
-    d: u32,
+    pub width: i32,
+    pub height: i32,
+    pub vehicle_width: i32,
+    pub gap: i32,
+    pub safety_distance: i32,
+
+    pub horizontal_road_1: i32,
+    pub vertical_road_1: i32,
+    pub horizontal_road_2: i32,
+    pub vertical_road_2: i32,
 }
 
 impl Settings {
-    pub fn new(width: u32, height: u32, vehicle_width: u32, gap: u32) -> Settings {
+    pub fn new(width: i32, height: i32, vehicle: i32, gap: i32, safety_distance: i32) -> Settings {
         let half_width = width / 2;
         let half_height = height / 2;
-        let vehicle_width = 2*vehicle;
+        let vehicle_width = 2 * vehicle;
+        let offset_road = gap + vehicle_width;
 
         Self {
             width,
             height,
-            vector_width,
+            vehicle_width,
             gap,
-            
-            a: half_height - gap - vehicle_width,
-            b: half_width - gap - vehicle_width,
-            c: half_height + gap + vehicle_width,
-            d: half_width + gap + vehicle_width,
+            safety_distance,
+
+            horizontal_road_1: half_height - offset_road,
+            vertical_road_1: half_width - offset_road,
+            horizontal_road_2: half_height + offset_road,
+            vertical_road_2: half_width + offset_road,
         }
     }
 }
