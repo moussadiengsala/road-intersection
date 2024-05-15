@@ -33,7 +33,7 @@ pub fn draw_map(canvas: &mut Canvas<Window>, settings: Rc<Settings>) {
         Path::new((0, settings.height / 2), (settings.vertical_road_1, settings.height / 2)),
         Path::new((settings.width / 2, settings.height), (settings.width / 2, settings.horizontal_road_2)),
         Path::new((settings.width, settings.height / 2), (settings.vertical_road_2, settings.height / 2)),
-        Path::new((settings.width / 2, 0), (settings.width / 2, settings.height / 2 - settings.vehicle_width)),
+        Path::new((settings.width / 2, 0), (settings.width / 2, settings.height / 2 - settings.offset_road)),
     ];
 
     canvas.set_draw_color(Color::RGB(255, 255, 255)); // Set line color

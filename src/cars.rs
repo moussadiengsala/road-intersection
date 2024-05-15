@@ -17,7 +17,7 @@ pub struct Vehicle {
     pub is_changed_direction: bool,
     pub is_stopped: bool,
 
-    settings: Rc<Settings>
+    settings: Rc<Settings>,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -27,7 +27,6 @@ pub enum Route {
     Left,
     Right,
 }
-
 
 impl Vehicle {
     pub fn new(route: Route, velocity: i32, settings: Rc<Settings>) -> Self {
@@ -40,7 +39,7 @@ impl Vehicle {
             velocity,
             is_changed_direction: false,
             is_stopped: false,
-            settings
+            settings,
         }
     }
 
@@ -79,26 +78,19 @@ impl Vehicle {
         (color, destination)
     }
 
-    pub fn spawn(
-        &mut self,
-        direction: Route
-    ) {
+    pub fn spawn(&mut self, direction: Route) {
         match direction {
             Route::Up => {
-                self.position.x = (self.settings.width / 2) + self.settings.vehicle_width / 2;
-                self.position.y = self.settings.height / 2;
+                self.position = self.settings.appearance_vehicle_up;
             }
             Route::Down => {
-                self.position.x = (self.settings.width / 2) - 2 * self.settings.vehicle_width + self.settings.vehicle_width / 2;
-                self.position.y = -self.settings.vehicle_width;
+                self.position = self.settings.appearance_vehicle_down;
             }
             Route::Left => {
-                self.position.x = self.settings.width;
-                self.position.y = self.settings.height / 2 / 2 - 2 * self.settings.vehicle_width + self.settings.vehicle_width / 2;
+                self.position = self.settings.appearance_vehicle_left;
             }
             Route::Right => {
-                self.position.x = -self.settings.vehicle_width;
-                self.position.y = self.settings.height / 2 / 2 + self.settings.vehicle_width / 2;
+                self.position = self.settings.appearance_vehicle_right;
             }
         }
     }
@@ -109,12 +101,12 @@ impl Vehicle {
         };
 
         let (x1, x2) = (
-            (self.settings.width / 2) - 2 * self.settings.vehicle_width + self.settings.vehicle_width / 2,
-            (self.settings.width / 2) + self.settings.vehicle_width / 2,
+            (self.settings.width / 2) - 2 * self.settings.vehicle + self.settings.vehicle / 2,
+            (self.settings.width / 2) + self.settings.vehicle / 2,
         );
         let (y1, y2) = (
-            self.settings.height / 2 / 2 + self.settings.vehicle_width / 2,
-            self.settings.height / 2 / 2 - 2 * self.settings.vehicle_width + self.settings.vehicle_width / 2,
+            self.settings.height / 2 / 2 + self.settings.vehicle / 2,
+            self.settings.height / 2 / 2 - 2 * self.settings.vehicle + self.settings.vehicle / 2,
         );
         match self.route {
             Route::Up => {
@@ -186,11 +178,7 @@ impl Vehicle {
     }
 }
 
-pub fn handle_keyboard_event(
-    event: &Event,
-    lanes: &mut Vec<Lane>,
-    settings: Rc<Settings>
-) {
+pub fn handle_keyboard_event(event: &Event, lanes: &mut Vec<Lane>, settings: Rc<Settings>) {
     match event {
         Event::KeyDown {
             keycode: Some(Keycode::Up),
@@ -226,7 +214,7 @@ pub fn handle_keyboard_event(
             keycode: Some(Keycode::Right),
             ..
         } => {
-            let mut vehicle = Vehicle::new(Route::Right, 1, settings);;
+            let mut vehicle = Vehicle::new(Route::Right, 1, settings);
             vehicle.spawn(Route::Right);
             if let Some(lane) = lanes.iter_mut().nth(1) {
                 lane.vehicles.push(vehicle);
@@ -243,7 +231,7 @@ pub fn handle_keyboard_event(
                 2 => Route::Left,
                 _ => Route::Right,
             };
-            let mut vehicle = Vehicle::new(random_route, 1, settings);;
+            let mut vehicle = Vehicle::new(random_route, 1, settings);
             vehicle.spawn(random_route);
             if let Some(lane) = match random_route {
                 Route::Up => lanes.iter_mut().nth(3),

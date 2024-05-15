@@ -42,17 +42,17 @@ impl Lane {
     }
 
     pub fn draw(mut self, canvas: &mut Canvas<Window>) {
-        self.traffic_light.draw(canvas, self.settings.width, self.settings.height, self.settings.vehicle_width);
+        self.traffic_light.draw(canvas, self.settings.width, self.settings.height, self.settings.vehicle);
     }
 
     pub fn stopped_coordinate(&mut self) {
         let (x1, x2) = (
-            (self.settings.width / 2) - 2 * self.settings.vehicle_width / 2,
-            (self.settings.width / 2) + self.settings.vehicle_width,
+            (self.settings.width / 2) - 2 * self.settings.vehicle / 2,
+            (self.settings.width / 2) + self.settings.vehicle,
         );
         let (y1, y2) = (
-            self.settings.height / 2 + self.settings.vehicle_width / 2,
-            self.settings.height / 2 - 2 * self.settings.vehicle_width + self.settings.vehicle_width / 2,
+            self.settings.height / 2 + self.settings.vehicle / 2,
+            self.settings.height / 2 - 2 * self.settings.vehicle + self.settings.vehicle / 2,
         );
 
         match self.cross {
@@ -124,7 +124,7 @@ impl Lane {
             // Move the vehicle forward
             vehicle.move_forward();
             canvas.set_draw_color(vehicle.color);
-            let rect = Rect::new(vehicle.position.x, vehicle.position.y, self.settings.width as u32, self.settings.width as u32);
+            let rect = Rect::new(vehicle.position.x, vehicle.position.y, self.settings.vehicle as u32, self.settings.vehicle as u32);
             canvas.fill_rect(rect).unwrap();
 
             // Remove vehicles that have reached the end of the lane

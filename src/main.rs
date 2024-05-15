@@ -70,8 +70,8 @@ pub fn main() {
         draw_map(&mut canvas, settings.clone());
 
         for lane in &mut lanes {
-            // lane.traffic_light.draw(&mut canvas, WIDTH as i32, HEIGHT as i32, VEHICULE_WIDTH as i32);
-            // lane.update(&mut canvas, WIDTH as i32, HEIGHT as i32, VEHICULE_WIDTH as i32);
+            // lane.traffic_light.draw(&mut canvas);
+            lane.update(&mut canvas);
 
 
 
