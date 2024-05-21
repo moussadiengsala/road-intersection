@@ -6,7 +6,7 @@ pub struct Settings {
     pub height: i32,
     pub vehicle: i32,
     pub gap: i32,
-    pub safety_distance: i32,
+    pub safety_distance: f64,
     pub offset_road: i32,
 
     pub horizontal_road_1: i32,
@@ -17,11 +17,19 @@ pub struct Settings {
     pub appearance_vehicle_up: Point,
     pub appearance_vehicle_down: Point,
     pub appearance_vehicle_left: Point,
-    pub appearance_vehicle_right: Point
+    pub appearance_vehicle_right: Point,
+
+    pub change_direction_1: Point,
+    pub change_direction_2: Point,
+
+    pub stop_point_first: Point,
+    pub stop_point_second: Point,
+    pub stop_point_third: Point,
+    pub stop_point_fourth: Point,
 }
 
 impl Settings {
-    pub fn new(width: i32, height: i32, vehicle: i32, gap: i32, safety_distance: i32) -> Settings {
+    pub fn new(width: i32, height: i32, vehicle: i32, gap: i32, safety_distance: f64) -> Settings {
         let half_width = width / 2;
         let half_height = height / 2;
         let vehicle_width = 2 * vehicle;
@@ -45,6 +53,14 @@ impl Settings {
             appearance_vehicle_down:Point::new(half_width - 3 * offset_road_s / 2, -vehicle), 
             appearance_vehicle_left:Point::new(width,  half_height - 3* offset_road_s / 2),
             appearance_vehicle_right: Point::new(-vehicle, half_height + offset_road_s / 2),
+
+            change_direction_1:Point::new(half_width - 3 * offset_road_s / 2, half_height - 3* offset_road_s / 2),
+            change_direction_2:Point::new(half_width + (offset_road_s / 2), half_height + offset_road_s / 2),
+
+            stop_point_first: Point::new(half_width - 3 * offset_road_s / 2, half_height - offset_road - vehicle),
+            stop_point_second: Point::new(half_width - offset_road - vehicle, half_height + offset_road_s / 2),
+            stop_point_third: Point::new(half_width + offset_road, half_height - 3* offset_road_s / 2),
+            stop_point_fourth: Point::new(half_width + (offset_road_s / 2), half_height + offset_road),
         }
     }
 }

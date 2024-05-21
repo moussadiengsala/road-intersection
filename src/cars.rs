@@ -1,11 +1,14 @@
 use std::rc::Rc;
 
 use rand::Rng;
-use sdl2::keyboard::Keycode;
-use sdl2::{event::Event, pixels::Color, rect::Point};
+use sdl2::{
+    pixels::Color,
+    rect::{Point, Rect},
+    render::Canvas,
+    video::Window,
+};
 
-use crate::lane::Lane;
-use crate::{settings, Settings};
+use crate::Settings;
 
 #[derive(Debug, Clone)]
 pub struct Vehicle {
@@ -26,6 +29,7 @@ pub enum Route {
     Down,
     Left,
     Right,
+    None,
 }
 
 impl Vehicle {
@@ -43,12 +47,42 @@ impl Vehicle {
         }
     }
 
+    pub fn has_reached_end(&self) -> bool {
+        let border_x = self.position.x < -self.settings.vehicle
+            || self.position.x > self.settings.width + self.settings.vehicle;
+        let border_y = self.position.y < -self.settings.vehicle
+            || self.position.y > self.settings.height + self.settings.vehicle;
+
+        border_x || border_y
+    }
+
+    pub fn distance(&self, other: &Self) -> f64 {
+        let dx = self.position.x as f64 - other.position.x as f64;
+        let dy = self.position.y as f64 - other.position.y as f64;
+        ((dx * dx) + (dy * dy)).sqrt()
+    }
+
     pub fn stop(&mut self) {
         self.is_stopped = true;
     }
 
     pub fn resume(&mut self) {
         self.is_stopped = false;
+    }
+
+    pub fn update(&mut self, canvas: &mut Canvas<Window>) {
+        if !self.is_stopped {
+            self.move_forward();
+        }
+
+        canvas.set_draw_color(self.color);
+        let rect = Rect::new(
+            self.position.x,
+            self.position.y,
+            self.settings.vehicle as u32,
+            self.settings.vehicle as u32,
+        );
+        canvas.fill_rect(rect).unwrap();
     }
 
     pub fn random(route: Route) -> (Color, Route) {
@@ -92,6 +126,7 @@ impl Vehicle {
             Route::Right => {
                 self.position = self.settings.appearance_vehicle_right;
             }
+            _ => (),
         }
     }
 
@@ -100,14 +135,6 @@ impl Vehicle {
             return;
         };
 
-        let (x1, x2) = (
-            (self.settings.width / 2) - 2 * self.settings.vehicle + self.settings.vehicle / 2,
-            (self.settings.width / 2) + self.settings.vehicle / 2,
-        );
-        let (y1, y2) = (
-            self.settings.height / 2 / 2 + self.settings.vehicle / 2,
-            self.settings.height / 2 / 2 - 2 * self.settings.vehicle + self.settings.vehicle / 2,
-        );
         match self.route {
             Route::Up => {
                 if !self.is_changed_direction {
@@ -121,8 +148,10 @@ impl Vehicle {
                     self.position.x += d * self.velocity;
                 };
 
-                if (self.position.y == y2) && (self.destination == Route::Left)
-                    || self.destination == Route::Right && (self.position.y == y1)
+                if (self.position.y == self.settings.change_direction_1.y)
+                    && (self.destination == Route::Left)
+                    || self.destination == Route::Right
+                        && (self.position.y == self.settings.change_direction_2.y)
                 {
                     self.is_changed_direction = true;
                 };
@@ -139,8 +168,10 @@ impl Vehicle {
                     self.position.x += d * self.velocity;
                 };
 
-                if (self.position.y == y1) && (self.destination == Route::Right)
-                    || (self.position.y == y2) && self.destination == Route::Left
+                if (self.position.y == self.settings.change_direction_2.y)
+                    && (self.destination == Route::Right)
+                    || (self.position.y == self.settings.change_direction_1.y)
+                        && self.destination == Route::Left
                 {
                     self.is_changed_direction = true;
                 };
@@ -157,8 +188,10 @@ impl Vehicle {
                     self.position.y += d * self.velocity;
                 };
 
-                if self.destination == Route::Down && self.position.x == x1
-                    || self.destination == Route::Up && self.position.x == x2
+                if self.destination == Route::Down
+                    && self.position.x == self.settings.change_direction_1.x
+                    || self.destination == Route::Up
+                        && self.position.x == self.settings.change_direction_2.x
                 {
                     self.is_changed_direction = true;
                 };
@@ -170,79 +203,14 @@ impl Vehicle {
                     self.position.y -= self.velocity;
                 };
 
-                if self.destination == Route::Up && self.position.x == x2 {
+                if self.destination == Route::Up
+                    && self.position.x == self.settings.change_direction_2.x
+                {
                     self.is_changed_direction = true;
                 };
             }
+            _ => (),
         }
-    }
-}
-
-pub fn handle_keyboard_event(event: &Event, lanes: &mut Vec<Lane>, settings: Rc<Settings>) {
-    match event {
-        Event::KeyDown {
-            keycode: Some(Keycode::Up),
-            ..
-        } => {
-            let mut vehicle = Vehicle::new(Route::Up, 1, settings);
-            vehicle.spawn(Route::Up);
-            if let Some(lane) = lanes.iter_mut().nth(3) {
-                lane.vehicles.push(vehicle);
-            }
-        }
-        Event::KeyDown {
-            keycode: Some(Keycode::Down),
-            ..
-        } => {
-            let mut vehicle = Vehicle::new(Route::Down, 1, settings);
-            vehicle.spawn(Route::Down);
-            if let Some(lane) = lanes.iter_mut().nth(0) {
-                lane.vehicles.push(vehicle);
-            }
-        }
-        Event::KeyDown {
-            keycode: Some(Keycode::Left),
-            ..
-        } => {
-            let mut vehicle = Vehicle::new(Route::Left, 1, settings);
-            vehicle.spawn(Route::Left);
-            if let Some(lane) = lanes.iter_mut().nth(2) {
-                lane.vehicles.push(vehicle);
-            }
-        }
-        Event::KeyDown {
-            keycode: Some(Keycode::Right),
-            ..
-        } => {
-            let mut vehicle = Vehicle::new(Route::Right, 1, settings);
-            vehicle.spawn(Route::Right);
-            if let Some(lane) = lanes.iter_mut().nth(1) {
-                lane.vehicles.push(vehicle);
-            }
-        }
-        Event::KeyDown {
-            keycode: Some(Keycode::R),
-            ..
-        } => {
-            let mut rng = rand::thread_rng();
-            let random_route = match rng.gen_range(0, 4) {
-                0 => Route::Up,
-                1 => Route::Down,
-                2 => Route::Left,
-                _ => Route::Right,
-            };
-            let mut vehicle = Vehicle::new(random_route, 1, settings);
-            vehicle.spawn(random_route);
-            if let Some(lane) = match random_route {
-                Route::Up => lanes.iter_mut().nth(3),
-                Route::Down => lanes.iter_mut().nth(0),
-                Route::Left => lanes.iter_mut().nth(2),
-                Route::Right => lanes.iter_mut().nth(1),
-            } {
-                lane.vehicles.push(vehicle);
-            }
-        }
-        _ => {}
     }
 }
 

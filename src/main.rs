@@ -1,26 +1,8 @@
-use sdl2;
 
-use sdl2::event::Event;
-use sdl2::keyboard::Keycode;
-use sdl2::pixels::Color;
-use std::{rc::Rc, time::Duration};
-
-mod settings;
-use settings::Settings;
-
-mod map;
-use map::draw_map;
-
-mod traffic;
-
-mod cars;
-use cars::handle_keyboard_event;
-
-mod lane;
-use lane::{Lane, Cross};
+use road_intersection::*;
 
 pub fn main() {
-    let settings = Rc::new(Settings::new(800, 800, 30, 1, 50));
+    let settings = Rc::new(Settings::new(800, 800, 30, 1, 60.0));
 
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
