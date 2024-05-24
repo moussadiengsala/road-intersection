@@ -7,7 +7,7 @@ use crate::traffic::TrafficLight;
 use sdl2::{rect::Point, render::Canvas, video::Window};
 use std::time::Instant;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Cross {
     First,
     Second,
@@ -15,11 +15,18 @@ pub enum Cross {
     Fourth,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Stage {
+    Crossing,
+    Waiting,
+}
+
 #[derive(Debug, Clone)]
 pub struct Lane {
     pub vehicles: Vec<Vehicle>,
     pub traffic_light: TrafficLight,
     pub cross: Cross,
+    pub stage: Stage,
     pub stop_point: Point,
     pub last_light_change: Instant,
     pub change_interval: Duration,
@@ -32,6 +39,7 @@ impl Lane {
             vehicles: Vec::new(),
             traffic_light: TrafficLight::new(cross),
             cross,
+            stage: Stage::Waiting,
             stop_point: match cross {
                 Cross::First => settings.stop_point_first,
                 Cross::Second => settings.stop_point_second,
@@ -44,13 +52,34 @@ impl Lane {
         }
     }
 
-    pub fn draw(mut self, canvas: &mut Canvas<Window>) {
+    pub fn draw_light(mut self, canvas: &mut Canvas<Window>) {
         self.traffic_light.draw(
             canvas,
             self.settings.width,
             self.settings.height,
             self.settings.vehicle,
         );
+    }
+
+    pub fn cross(&mut self) {
+        if self.stage == Stage::Waiting {
+            println!("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
+            return;
+        }
+
+        let vehicles = self.vehicles.iter().filter(|v| v.stage == Stage::Waiting).collect::<Vec<&Vehicle>>();
+        if let Some(vehicle) = vehicles.first() {
+            if vehicle.distance_to(self.stop_point) > 2.0 * self.settings.safety_distance {
+                self.stage = Stage::Waiting;
+            }
+        } 
+    }
+
+    pub fn closest_vehicle_distance(&self) -> Option<f64> {
+        self.vehicles
+            .iter()
+            .map(|vehicle| vehicle.distance_to(self.stop_point))
+            .min_by(|a, b| a.partial_cmp(b).unwrap())
     }
 
     pub fn stop_vehicules(&mut self) {
@@ -62,21 +91,24 @@ impl Lane {
         };
 
         let mut vehicles = self.vehicles.iter_mut().collect::<Vec<&mut Vehicle>>();
-        for i in  0..vehicles.len() {
-            let can_move = if let Some(next_vehicle) =  vehicles.iter().nth((i as i32 - 1) as usize) {    
-                vehicles[i].distance(next_vehicle) > self.settings.safety_distance 
+        for i in 0..vehicles.len() {
+            let can_move = if let Some(next_vehicle) = vehicles.iter().nth((i as i32 - 1) as usize)
+            {
+                vehicles[i].distance(next_vehicle) > self.settings.safety_distance
             } else {
                 true
             };
 
-            if vehicles[i].position == stop_point || !can_move {
+            if (vehicles[i].position == stop_point && self.stage == Stage::Waiting) || !can_move {
                 vehicles[i].is_stopped = true;
             }
         }
     }
 
     pub fn update(&mut self, canvas: &mut Canvas<Window>) {
+        <Lane as Clone>::clone(&self).draw_light(canvas);
         self.stop_vehicules();
+        self.cross();
 
         for i in (0..self.vehicles.len()).rev() {
             self.vehicles[i].update(canvas);
@@ -85,13 +117,12 @@ impl Lane {
             if self.vehicles[i].has_reached_end() {
                 self.vehicles.remove(i);
             }
-            
         }
     }
 
     pub fn add_vehicle(&mut self, route: Route) {
         println!("route {:?} len {}", self.cross, self.vehicles.len());
-        let mut vehicle = Vehicle::new(route, 1, self.settings.clone());
+        let mut vehicle = Vehicle::new(route, 1, self.settings.clone(), self.stop_point);
         vehicle.spawn(route);
 
         if let Some(last) = self.vehicles.clone().last() {

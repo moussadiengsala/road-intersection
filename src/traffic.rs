@@ -49,12 +49,12 @@ impl TrafficLight {
         };
     }
 
-    pub fn change_traffic_light(&mut self, canvas: &mut Canvas<Window>, width: i32, height: i32, vehicle: i32) {
+    pub fn change_traffic_light(&mut self) {
         match self.color {
             Color::RED => self.color = Color::GREEN,
             Color::GREEN => self.color = Color::RED,
-            _ => unreachable!(),
+            _ => ()
         };
-        self.draw(canvas, width, height, vehicle);
+        // self.draw(canvas, width, height, vehicle);
     }
 }

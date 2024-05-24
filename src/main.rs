@@ -52,19 +52,10 @@ pub fn main() {
         draw_map(&mut canvas, settings.clone());
 
         for lane in &mut lanes {
-            // lane.traffic_light.draw(&mut canvas);
             lane.update(&mut canvas);
-
-
-
-            // for vehicle in &mut lane.vehicles {
-            //     vehicle.move_forward(WIDTH as i32, HEIGHT as i32, VEHICULE_WIDTH as i32);
-            //     canvas.set_draw_color(vehicle.color);
-            //     let rect = Rect::new(vehicle.position.x, vehicle.position.y, VEHICULE_WIDTH, VEHICULE_WIDTH);
-            //     canvas.fill_rect(rect).unwrap();
-            //     // vehicle.update(&mut canvas, WIDTH as i32, HEIGHT as i32, VEHICULE_WIDTH as i32);
-            // }
         };
+
+        update_traffic_lights(&mut lanes);
 
         canvas.present();
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));

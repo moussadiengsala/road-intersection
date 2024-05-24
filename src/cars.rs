@@ -8,18 +8,19 @@ use sdl2::{
     video::Window,
 };
 
-use crate::Settings;
+use crate::{lane::Stage, Settings};
 
 #[derive(Debug, Clone)]
 pub struct Vehicle {
     pub position: Point,
     pub color: Color,
     pub route: Route,
+    pub stop_point: Point,
     pub destination: Route,
     pub velocity: i32,
     pub is_changed_direction: bool,
     pub is_stopped: bool,
-
+    pub stage: Stage,
     settings: Rc<Settings>,
 }
 
@@ -33,7 +34,7 @@ pub enum Route {
 }
 
 impl Vehicle {
-    pub fn new(route: Route, velocity: i32, settings: Rc<Settings>) -> Self {
+    pub fn new(route: Route, velocity: i32, settings: Rc<Settings>, stop_point: Point) -> Self {
         let (color, destination) = Self::random(route);
         Self {
             position: Point::new(0, 0),
@@ -44,6 +45,8 @@ impl Vehicle {
             is_changed_direction: false,
             is_stopped: false,
             settings,
+            stage:Stage::Waiting,
+            stop_point
         }
     }
 
@@ -59,6 +62,12 @@ impl Vehicle {
     pub fn distance(&self, other: &Self) -> f64 {
         let dx = self.position.x as f64 - other.position.x as f64;
         let dy = self.position.y as f64 - other.position.y as f64;
+        ((dx * dx) + (dy * dy)).sqrt()
+    }
+
+    pub fn distance_to(&self, point: Point) -> f64 {
+        let dx = self.position.x as f64 - point.x as f64;
+        let dy = self.position.y as f64 - point.y as f64;
         ((dx * dx) + (dy * dy)).sqrt()
     }
 
@@ -134,6 +143,10 @@ impl Vehicle {
         if self.is_stopped {
             return;
         };
+
+        if self.position == self.stop_point {
+            self.stage = Stage::Crossing;
+        }
 
         match self.route {
             Route::Up => {
