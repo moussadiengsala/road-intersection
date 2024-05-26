@@ -30,7 +30,7 @@ pub struct Lane {
     pub stop_point: Point,
     pub last_light_change: Instant,
     pub change_interval: Duration,
-    settings: Rc<Settings>,
+    pub settings: Rc<Settings>,
 }
 
 impl Lane {
@@ -59,20 +59,6 @@ impl Lane {
             self.settings.height,
             self.settings.vehicle,
         );
-    }
-
-    pub fn cross(&mut self) {
-        if self.stage == Stage::Waiting {
-            println!("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
-            return;
-        }
-
-        let vehicles = self.vehicles.iter().filter(|v| v.stage == Stage::Waiting).collect::<Vec<&Vehicle>>();
-        if let Some(vehicle) = vehicles.first() {
-            if vehicle.distance_to(self.stop_point) > 2.0 * self.settings.safety_distance {
-                self.stage = Stage::Waiting;
-            }
-        } 
     }
 
     pub fn closest_vehicle_distance(&self) -> Option<f64> {
@@ -108,7 +94,6 @@ impl Lane {
     pub fn update(&mut self, canvas: &mut Canvas<Window>) {
         <Lane as Clone>::clone(&self).draw_light(canvas);
         self.stop_vehicules();
-        self.cross();
 
         for i in (0..self.vehicles.len()).rev() {
             self.vehicles[i].update(canvas);
@@ -121,7 +106,7 @@ impl Lane {
     }
 
     pub fn add_vehicle(&mut self, route: Route) {
-        println!("route {:?} len {}", self.cross, self.vehicles.len());
+        
         let mut vehicle = Vehicle::new(route, 1, self.settings.clone(), self.stop_point);
         vehicle.spawn(route);
 
@@ -132,5 +117,7 @@ impl Lane {
         } else {
             self.vehicles.push(vehicle);
         }
+
+        // println!("route {:?} len {}", self.cross, self.vehicles.len());
     }
 }

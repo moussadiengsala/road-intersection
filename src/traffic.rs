@@ -1,5 +1,5 @@
 
-use sdl2::{pixels::Color, rect::Point, render::Canvas, video::Window};
+use sdl2::{pixels::Color, render::Canvas, video::Window};
 use crate::map::Path;
 
 use crate::lane::Cross;
@@ -31,12 +31,12 @@ impl TrafficLight {
                 Path::new((x2, y1), (x1, y1)),
             ],
             Cross::Second => [
-                Path::new((x4, y2), (x4, y1)),
-                Path::new((x3, y1), (x4, y1)),
-            ],
-            Cross::Third => [
                 Path::new((x1, y3), (x1, y4)),
                 Path::new((x1, y4), (x2, y4)),
+            ],
+            Cross::Third => [
+                Path::new((x4, y2), (x4, y1)),
+                Path::new((x3, y1), (x4, y1)),
             ],
             Cross::Fourth => [
                 Path::new((x4, y3), (x4, y4)),

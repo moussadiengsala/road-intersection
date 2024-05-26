@@ -4,7 +4,6 @@ pub use sdl2;
 pub use sdl2::event::Event;
 pub use sdl2::keyboard::Keycode;
 pub use sdl2::pixels::Color;
-use std::{cmp::Ordering, time::Instant};
 pub use std::{rc::Rc, time::Duration};
 
 mod settings;
@@ -61,29 +60,51 @@ pub fn handle_keyboard_event(event: &Event, lanes: &mut Vec<Lane>, settings: Rc<
 }
 
 pub fn update_traffic_lights(lanes: &mut [Lane]) {
-    // Check if any lane is currently in the "Crossing" stage
-    if lanes.iter().any(|lane| lane.stage == Stage::Crossing) {
-        return;
+    let mut cross_lane = None;
+    let mut next_cross_lane = None;
+    let mut min_distance = f64::MAX;
+
+    for lane in lanes.iter_mut() {
+        if lane.stage == Stage::Crossing {
+            cross_lane = Some(lane);
+            continue;
+        } 
+
+        let a = lane.vehicles.iter().filter(|v| v.stage == Stage::Waiting).collect::<Vec<&Vehicle>>();
+        if !a.is_empty() && lane.stage == Stage::Waiting {
+            if let Some(distance) = lane.closest_vehicle_distance() {
+                if distance < min_distance {
+                    min_distance = distance;
+                    next_cross_lane = Some(lane);
+                }
+            }
+        }
     }
 
-    let current_time = Instant::now();
-
-    // Sort lanes by the time of the last light change
-    lanes.sort_by(|a, b| a.last_light_change.cmp(&b.last_light_change));
-
-    // Find the lane with the closest vehicle to the stop point among the top three lanes
-    let lane_with_closest_vehicle = lanes.iter_mut()
-        .min_by(|a, b| {
-            a.closest_vehicle_distance()
-                .unwrap_or(f64::MAX)
-                .partial_cmp(&b.closest_vehicle_distance().unwrap_or(f64::MAX))
-                .unwrap_or(Ordering::Equal)
-        });
-
-    // If a suitable lane is found, update its traffic light and reset its timer
-    if let Some(lane_with_closest_vehicle) = lane_with_closest_vehicle {
-        lane_with_closest_vehicle.traffic_light.change_traffic_light();
-        lane_with_closest_vehicle.last_light_change = current_time;
-        lane_with_closest_vehicle.stage = Stage::Crossing;
+    // If a lane with the closest vehicle is found and it's not already crossing, change its traffic light
+    if let Some(lane) = next_cross_lane {
+        if let Some(lane) = cross_lane {
+            let vehicles = lane.vehicles.iter().filter(|v| v.stage == Stage::Waiting).collect::<Vec<&Vehicle>>();
+            if let Some(vehicle) = vehicles.first() {
+                if vehicle.distance_to(lane.stop_point) > 2.0 * lane.settings.safety_distance {
+                    lane.traffic_light.change_traffic_light();
+                    lane.stage = Stage::Waiting;
+                } else {
+                    return;
+                }
+            } else {
+                lane.traffic_light.change_traffic_light();
+                lane.stage = Stage::Waiting;
+            }
+        } else {
+            lane.traffic_light.change_traffic_light();
+            lane.stage = Stage::Crossing;
+        }
     }
 }
+
+// lanes.iter()
+// .filter(|lane| lane.stage == Stage::Crossing)
+// .for_each(|lane| {
+
+// });
