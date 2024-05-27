@@ -88,13 +88,61 @@ impl Lane {
             if (vehicles[i].position == stop_point && self.stage == Stage::Waiting) || !can_move {
                 vehicles[i].is_stopped = true;
             }
+
+            if self.stage == Stage::Crossing && vehicles[i].is_stopped {
+                vehicles[i].is_stopped = false;
+            }
+        }
+    }
+
+    fn cross(&mut self) {
+        if self.stage == Stage::Waiting {
+            return;
+        }
+
+        let a = |v: &&Vehicle| -> bool {
+            match self.cross {
+                Cross::First => v.position.y > self.stop_point.y,
+                Cross::Second => v.position.x > self.stop_point.x,
+                Cross::Third => v.position.x < self.stop_point.x,
+                Cross::Fourth => v.position.y < self.stop_point.y,
+            }
+        };
+ 
+        // vehicle that already cross the stop point and enter in the itersections.
+        let vehicle_crossed = self
+            .vehicles
+            .iter()
+            .filter(|v| v.stage == Stage::Waiting && a(v))
+            .collect::<Vec<&Vehicle>>();
+
+        let vehicles = self
+            .vehicles
+            .iter()
+            .filter(|v| v.stage == Stage::Waiting && !a(v))
+            .collect::<Vec<&Vehicle>>();
+
+        if !vehicle_crossed.is_empty() {
+            return;
+        }
+
+        if let Some(vehicle) = vehicles.first() {
+            if vehicle.distance_to(self.stop_point) > 2.0 * self.settings.safety_distance {
+                self.traffic_light.change_traffic_light();
+                self.stage = Stage::Waiting;
+            } else {
+                return;
+            }
+        } else {
+            self.traffic_light.change_traffic_light();
+            self.stage = Stage::Waiting;
         }
     }
 
     pub fn update(&mut self, canvas: &mut Canvas<Window>) {
         <Lane as Clone>::clone(&self).draw_light(canvas);
         self.stop_vehicules();
-
+        self.cross();
         for i in (0..self.vehicles.len()).rev() {
             self.vehicles[i].update(canvas);
 
@@ -106,8 +154,8 @@ impl Lane {
     }
 
     pub fn add_vehicle(&mut self, route: Route) {
-        
-        let mut vehicle = Vehicle::new(route, 1, self.settings.clone(), self.stop_point);
+        let mut vehicle =
+            Vehicle::new(route, 1, self.settings.clone(), self.stop_point, self.cross);
         vehicle.spawn(route);
 
         if let Some(last) = self.vehicles.clone().last() {

@@ -8,7 +8,7 @@ use sdl2::{
     video::Window,
 };
 
-use crate::{lane::Stage, Settings};
+use crate::{lane::Stage, Cross, Settings};
 
 #[derive(Debug, Clone)]
 pub struct Vehicle {
@@ -21,6 +21,7 @@ pub struct Vehicle {
     pub is_changed_direction: bool,
     pub is_stopped: bool,
     pub stage: Stage,
+    pub lane: Cross,
     settings: Rc<Settings>,
 }
 
@@ -34,7 +35,7 @@ pub enum Route {
 }
 
 impl Vehicle {
-    pub fn new(route: Route, velocity: i32, settings: Rc<Settings>, stop_point: Point) -> Self {
+    pub fn new(route: Route, velocity: i32, settings: Rc<Settings>, stop_point: Point, lane: Cross) -> Self {
         let (color, destination) = Self::random(route);
         Self {
             position: Point::new(0, 0),
@@ -45,6 +46,7 @@ impl Vehicle {
             is_changed_direction: false,
             is_stopped: false,
             settings,
+            lane,
             stage:Stage::Waiting,
             stop_point
         }
@@ -80,6 +82,10 @@ impl Vehicle {
     }
 
     pub fn update(&mut self, canvas: &mut Canvas<Window>) {
+        if self.stage == Stage::Crossing && self.is_stopped {
+            self.is_stopped = false;
+        }
+
         if !self.is_stopped {
             self.move_forward();
         }
@@ -121,6 +127,90 @@ impl Vehicle {
         (color, destination)
     }
 
+    pub fn s(&mut self) {
+        match self.lane {
+            Cross::First => {
+                match self.color {
+                    Color::BLUE => {
+                        if self.position == self.settings.dis_vehicle_fourth {
+                            self.stage = Stage::Crossing;
+                        }
+                    },
+                    Color::YELLOW => {
+                        if self.position == self.settings.dis_vehicle_third {
+                            self.stage = Stage::Crossing;
+                        }
+                    },
+                    Color::GREEN => {
+                        if self.position == self.settings.dis_vehicle_second {
+                            self.stage = Stage::Crossing;
+                        }
+                    },
+                    _ => todo!(),
+                    
+                }
+            },
+            Cross::Second => {
+                match self.color {
+                    Color::BLUE | Color::GREEN  => {
+                        if self.position == self.settings.dis_vehicle_third {
+                            self.stage = Stage::Crossing;
+                        }
+                    },
+                    Color::YELLOW => {
+                        if self.position == self.settings.dis_vehicle_first {
+                            self.stage = Stage::Crossing;
+                        }
+                    },
+                    _ => todo!(),
+                    
+                }
+            },
+            Cross::Third => {
+                match self.color {
+                    Color::BLUE => {
+                        if self.position == self.settings.dis_vehicle_first {
+                            self.stage = Stage::Crossing;
+                        }
+                    },
+                    Color::YELLOW => {
+                        if self.position == self.settings.dis_vehicle_fourth {
+                            self.stage = Stage::Crossing;
+                        }
+                    },
+                    Color::GREEN => {
+                        if self.position == self.settings.dis_vehicle_first {
+                            self.stage = Stage::Crossing;
+                        }
+                    },
+                    _ => todo!(),
+                    
+                }
+            },
+            Cross::Fourth => {
+                match self.color {
+                    Color::BLUE => {
+                        if self.position == self.settings.dis_vehicle_fourth {
+                            self.stage = Stage::Crossing;
+                        }
+                    },
+                    Color::YELLOW => {
+                        if self.position == self.settings.dis_vehicle_second {
+                            self.stage = Stage::Crossing;
+                        }
+                    },
+                    Color::GREEN => {
+                        if self.position == self.settings.dis_vehicle_third {
+                            self.stage = Stage::Crossing;
+                        }
+                    },
+                    _ => todo!(),
+                    
+                }
+            },
+        }
+    }
+
     pub fn spawn(&mut self, direction: Route) {
         match direction {
             Route::Up => {
@@ -144,9 +234,10 @@ impl Vehicle {
             return;
         };
 
-        if self.position == self.stop_point {
-            self.stage = Stage::Crossing;
-        }
+        // if self.position == self.stop_point {
+        //     self.stage = Stage::Crossing;
+        // }
+        self.s();
 
         match self.route {
             Route::Up => {

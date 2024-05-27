@@ -60,18 +60,20 @@ pub fn handle_keyboard_event(event: &Event, lanes: &mut Vec<Lane>, settings: Rc<
 }
 
 pub fn update_traffic_lights(lanes: &mut [Lane]) {
-    let mut cross_lane = None;
+    if lanes.iter().any(|v| v.stage == Stage::Crossing) {
+        return;
+    }
+
     let mut next_cross_lane = None;
     let mut min_distance = f64::MAX;
 
     for lane in lanes.iter_mut() {
-        if lane.stage == Stage::Crossing {
-            cross_lane = Some(lane);
-            continue;
-        } 
-
-        let a = lane.vehicles.iter().filter(|v| v.stage == Stage::Waiting).collect::<Vec<&Vehicle>>();
-        if !a.is_empty() && lane.stage == Stage::Waiting {
+        let a = lane
+            .vehicles
+            .iter()
+            .filter(|v| v.stage == Stage::Waiting)
+            .collect::<Vec<&Vehicle>>();
+        if !a.is_empty() {
             if let Some(distance) = lane.closest_vehicle_distance() {
                 if distance < min_distance {
                     min_distance = distance;
@@ -81,30 +83,52 @@ pub fn update_traffic_lights(lanes: &mut [Lane]) {
         }
     }
 
-    // If a lane with the closest vehicle is found and it's not already crossing, change its traffic light
     if let Some(lane) = next_cross_lane {
-        if let Some(lane) = cross_lane {
-            let vehicles = lane.vehicles.iter().filter(|v| v.stage == Stage::Waiting).collect::<Vec<&Vehicle>>();
-            if let Some(vehicle) = vehicles.first() {
-                if vehicle.distance_to(lane.stop_point) > 2.0 * lane.settings.safety_distance {
-                    lane.traffic_light.change_traffic_light();
-                    lane.stage = Stage::Waiting;
-                } else {
-                    return;
-                }
-            } else {
-                lane.traffic_light.change_traffic_light();
-                lane.stage = Stage::Waiting;
-            }
-        } else {
-            lane.traffic_light.change_traffic_light();
-            lane.stage = Stage::Crossing;
-        }
+        lane.traffic_light.change_traffic_light();
+        lane.stage = Stage::Crossing;
     }
 }
 
-// lanes.iter()
-// .filter(|lane| lane.stage == Stage::Crossing)
-// .for_each(|lane| {
+// pub fn update_traffic_lights(lanes: &mut [Lane]) {
+// let mut cross_lane = None;
+// let mut next_cross_lane = None;
+// let mut min_distance = f64::MAX;
 
-// });
+// for lane in lanes.iter_mut() {
+//     if lane.stage == Stage::Crossing {
+//         cross_lane = Some(lane);
+//         continue;
+//     }
+
+//     let a = lane.vehicles.iter().filter(|v| v.stage == Stage::Waiting).collect::<Vec<&Vehicle>>();
+//     if !a.is_empty() && lane.stage == Stage::Waiting {
+//         if let Some(distance) = lane.closest_vehicle_distance() {
+//             if distance < min_distance {
+//                 min_distance = distance;
+//                 next_cross_lane = Some(lane);
+//             }
+//         }
+//     }
+// }
+
+// if let Some(lane) = next_cross_lane {
+//     if let Some(lane) = cross_lane {
+//         let vehicles = lane.vehicles.iter().filter(|v| v.stage == Stage::Waiting).collect::<Vec<&Vehicle>>();
+//         if let Some(vehicle) = vehicles.first() {
+//             if vehicle.distance_to(lane.stop_point) > 2.0 * lane.settings.safety_distance {
+//                 lane.traffic_light.change_traffic_light();
+//                 lane.stage = Stage::Waiting;
+//             } else {
+//                 return;
+//             }
+//         } else {
+//             lane.traffic_light.change_traffic_light();
+//             lane.stage = Stage::Waiting;
+//             println!("helooooooooooooooooooooooooooooooooooo")
+//         }
+//     } else {
+//         lane.traffic_light.change_traffic_light();
+//         lane.stage = Stage::Crossing;
+//     }
+// }
+// }

@@ -26,6 +26,11 @@ pub struct Settings {
     pub stop_point_second: Point,
     pub stop_point_third: Point,
     pub stop_point_fourth: Point,
+
+    pub dis_vehicle_first: Point,
+    pub dis_vehicle_second: Point,
+    pub dis_vehicle_third: Point,
+    pub dis_vehicle_fourth: Point,
 }
 
 impl Settings {
@@ -61,6 +66,11 @@ impl Settings {
             stop_point_second: Point::new(half_width - offset_road - vehicle, half_height + offset_road_s / 2),
             stop_point_third: Point::new(half_width + offset_road, half_height - 3* offset_road_s / 2),
             stop_point_fourth: Point::new(half_width + (offset_road_s / 2), half_height + offset_road),
+
+            dis_vehicle_first: Point::new(half_width + (offset_road_s / 2), half_height - offset_road - vehicle),
+            dis_vehicle_second:Point::new(half_width - offset_road - vehicle, half_height - 3* offset_road_s / 2), 
+            dis_vehicle_third:Point::new(half_width + offset_road,  half_height + offset_road_s / 2),
+            dis_vehicle_fourth: Point::new(half_width - 3 * offset_road_s / 2, half_height + offset_road),
         }
     }
 }
