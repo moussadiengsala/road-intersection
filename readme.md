@@ -71,7 +71,7 @@ This project simulates traffic control at a road intersection in a city. The pri
 
 ## Demo
 
-[video demo](media/demo.mp4)
+[video demo](demo/demo.webm)
 
 ## Contributing
 Contributions are welcome! Please open an issue or submit a pull request.
