@@ -169,7 +169,7 @@ impl Vehicle {
             Cross::Third => {
                 match self.color {
                     Color::BLUE => {
-                        if self.position == self.settings.dis_vehicle_first {
+                        if self.position == self.settings.dis_vehicle_second {
                             self.stage = Stage::Crossing;
                         }
                     },
@@ -190,7 +190,7 @@ impl Vehicle {
             Cross::Fourth => {
                 match self.color {
                     Color::BLUE => {
-                        if self.position == self.settings.dis_vehicle_fourth {
+                        if self.position == self.settings.dis_vehicle_first {
                             self.stage = Stage::Crossing;
                         }
                     },

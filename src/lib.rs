@@ -60,23 +60,29 @@ pub fn handle_keyboard_event(event: &Event, lanes: &mut Vec<Lane>, settings: Rc<
 }
 
 pub fn update_traffic_lights(lanes: &mut [Lane]) {
-    if lanes.iter().any(|v| v.stage == Stage::Crossing) {
+    // Check if any lane is currently in the Crossing stage
+    if lanes.iter().any(|lane| lane.stage == Stage::Crossing) {
         return;
     }
 
     let mut next_cross_lane = None;
     let mut min_distance = f64::MAX;
+    let mut max_vehicle_count = 0;
 
     for lane in lanes.iter_mut() {
-        let a = lane
+        let waiting_vehicles: Vec<&Vehicle> = lane
             .vehicles
             .iter()
             .filter(|v| v.stage == Stage::Waiting)
-            .collect::<Vec<&Vehicle>>();
-        if !a.is_empty() {
+            .collect();
+
+        if !waiting_vehicles.is_empty() {
             if let Some(distance) = lane.closest_vehicle_distance() {
-                if distance < min_distance {
+                let vehicle_count = waiting_vehicles.len();
+                
+                if distance < min_distance || (distance == min_distance && vehicle_count > max_vehicle_count) {
                     min_distance = distance;
+                    max_vehicle_count = vehicle_count;
                     next_cross_lane = Some(lane);
                 }
             }
@@ -88,6 +94,7 @@ pub fn update_traffic_lights(lanes: &mut [Lane]) {
         lane.stage = Stage::Crossing;
     }
 }
+
 
 // pub fn update_traffic_lights(lanes: &mut [Lane]) {
 // let mut cross_lane = None;

@@ -115,7 +115,6 @@ impl Lane {
             .iter()
             .filter(|v| v.stage == Stage::Waiting && a(v))
             .collect::<Vec<&Vehicle>>();
-
         let vehicles = self
             .vehicles
             .iter()
